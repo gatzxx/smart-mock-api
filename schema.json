@@ -1,0 +1,58 @@
+{
+  "basePath": "/api",
+  "endpoints": [
+    {
+      "path": "/users",
+      "response": {
+        "kind": "collection",
+        "count": 10,
+        "item": {
+          "id": "uuid",
+          "fullName": "person.fullName",
+          "email": "internet.email",
+          "role": "person.jobTitle",
+          "createdAt": "date.recent"
+        }
+      }
+    },
+    {
+      "path": "/users/:id",
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "fullName": "person.fullName",
+          "email": "internet.email",
+          "phone": "phone.number",
+          "avatar": "image.avatar",
+          "bio": "lorem.paragraph"
+        }
+      }
+    },
+    {
+      "path": "/products",
+      "response": {
+        "kind": "collection",
+        "count": 8,
+        "item": {
+          "id": "uuid",
+          "title": "commerce.productName",
+          "price": "commerce.price",
+          "inStock": "datatype.boolean",
+          "updatedAt": "date.recent"
+        }
+      }
+    },
+    {
+      "path": "/health",
+      "response": {
+        "kind": "object",
+        "fields": {
+          "status": "literal.ok",
+          "uptime": "number.int",
+          "timestamp": "date.iso"
+        }
+      }
+    }
+  ]
+}
