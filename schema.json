@@ -44,6 +44,20 @@
       }
     },
     {
+      "path": "/products/:id",
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "title": "commerce.productName",
+          "price": "commerce.price",
+          "inStock": "datatype.boolean",
+          "description": "lorem.paragraph",
+          "updatedAt": "date.recent"
+        }
+      }
+    },
+    {
       "path": "/health",
       "response": {
         "kind": "object",

@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
 import { generateResponse } from "../generator/dataGenerator.js";
+import { resolveRouteSeedKey } from "../generator/seed.js";
 import { createDelayMiddleware } from "../middleware/delay.js";
 import type { MockEndpoint, MockSchema } from "../schema/types.js";
 
@@ -85,7 +86,8 @@ function registerEndpoint(
   const fullPath = joinPaths(basePath, endpoint.path);
 
   app.get(fullPath, (context) => {
-    const payload = generateResponse(endpoint.response);
+    const seedKey = resolveRouteSeedKey(fullPath, context.req.param());
+    const payload = generateResponse(endpoint.response, seedKey);
     return context.json(payload);
   });
 

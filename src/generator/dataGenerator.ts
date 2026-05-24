@@ -1,5 +1,8 @@
+import { faker } from "@faker-js/faker";
+
 import type { FieldMap, MockResponse } from "../schema/types.js";
 import { getGenerator } from "./fakerRegistry.js";
+import { hashSeedKey } from "./seed.js";
 
 export function generateFields(fields: FieldMap): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -11,7 +14,11 @@ export function generateFields(fields: FieldMap): Record<string, unknown> {
   return result;
 }
 
-export function generateResponse(response: MockResponse): unknown {
+export function generateResponse(response: MockResponse, seedKey?: string): unknown {
+  if (seedKey) {
+    faker.seed(hashSeedKey(seedKey));
+  }
+
   if (response.kind === "object") {
     return generateFields(response.fields);
   }

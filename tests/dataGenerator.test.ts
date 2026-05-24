@@ -36,4 +36,24 @@ describe("generateResponse", () => {
     expect(result).toHaveLength(3);
     expect(result[0]).toHaveProperty("fullName");
   });
+
+  it("generates stable collection for the same seed key", () => {
+    const response: MockResponse = {
+      kind: "collection",
+      count: 3,
+      item: {
+        fullName: "person.fullName",
+        email: "internet.email",
+      },
+    };
+
+    const firstResult = generateResponse(response, "/api/users") as Array<
+      Record<string, unknown>
+    >;
+    const secondResult = generateResponse(response, "/api/users") as Array<
+      Record<string, unknown>
+    >;
+
+    expect(firstResult).toEqual(secondResult);
+  });
 });
