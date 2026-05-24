@@ -2,31 +2,23 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
-import { generateResponse } from "../generator/dataGenerator.js";
-import { resolveRouteSeedKey } from "../generator/seed.js";
 import { createDelayMiddleware } from "../middleware/delay.js";
-import type { MockEndpoint, MockSchema } from "../schema/types.js";
+import type { MockSchema } from "../schema/types.js";
+import { EntityStore } from "../store/entityStore.js";
+import { indexCollectionEndpoints, registerEndpoint } from "./registerEndpoint.js";
+import type { RegisteredRoute } from "./types.js";
 
-export type RegisteredRoute = {
-  method: "GET";
-  path: string;
-};
-
-function joinPaths(basePath: string, endpointPath: string): string {
-  if (basePath === "/") {
-    return endpointPath;
-  }
-
-  return `${basePath}${endpointPath}`;
-}
+export type { HttpMethod, RegisteredRoute } from "./types.js";
 
 export function createMockServer(
   schema: MockSchema,
   responseDelayMs: number,
   corsOrigin: string,
-): { app: Hono; routes: RegisteredRoute[] } {
+): { app: Hono; routes: RegisteredRoute[]; store: EntityStore } {
   const app = new Hono();
   const routes: RegisteredRoute[] = [];
+  const store = new EntityStore();
+  const collectionByEntity = indexCollectionEndpoints(schema.endpoints);
 
   app.use(
     "*",
@@ -56,12 +48,23 @@ export function createMockServer(
     return context.json({
       basePath: schema.basePath,
       endpoints: routes.map((route) => route.path),
+      routes: routes.map((route) => ({
+        method: route.method,
+        path: route.path,
+      })),
       responseDelayMs,
     });
   });
 
   for (const endpoint of schema.endpoints) {
-    registerEndpoint(app, schema.basePath, endpoint, routes);
+    registerEndpoint({
+      app,
+      basePath: schema.basePath,
+      endpoint,
+      routes,
+      store,
+      collectionByEntity,
+    });
   }
 
   app.notFound((context) => {
@@ -74,22 +77,5 @@ export function createMockServer(
     );
   });
 
-  return { app, routes };
-}
-
-function registerEndpoint(
-  app: Hono,
-  basePath: string,
-  endpoint: MockEndpoint,
-  routes: RegisteredRoute[],
-): void {
-  const fullPath = joinPaths(basePath, endpoint.path);
-
-  app.get(fullPath, (context) => {
-    const seedKey = resolveRouteSeedKey(fullPath, context.req.param());
-    const payload = generateResponse(endpoint.response, seedKey);
-    return context.json(payload);
-  });
-
-  routes.push({ method: "GET", path: fullPath });
+  return { app, routes, store };
 }

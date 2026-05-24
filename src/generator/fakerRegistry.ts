@@ -11,6 +11,7 @@ const SHORTHAND_GENERATORS: Record<string, FakerGenerator> = {
 const LITERAL_GENERATORS: Record<string, FakerGenerator> = {
   "literal.ok": () => "ok",
   "date.iso": () => new Date().toISOString(),
+  "runtime.uptime": () => Math.floor(process.uptime()),
 };
 
 function resolveFakerPath(fieldType: FakerFieldType): FakerGenerator {

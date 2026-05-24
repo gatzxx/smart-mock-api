@@ -21,6 +21,15 @@ describe("getGenerator", () => {
     );
   });
 
+  it("returns process uptime for runtime.uptime", () => {
+    const generate = getGenerator("runtime.uptime");
+    const value = generate();
+
+    expect(typeof value).toBe("number");
+    expect(value).toBeGreaterThanOrEqual(0);
+    expect(value).toBeLessThanOrEqual(Math.ceil(process.uptime()) + 1);
+  });
+
   it("throws for unknown field type", () => {
     expect(() => getGenerator("unknown.field")).toThrow(/Unknown field type/);
   });

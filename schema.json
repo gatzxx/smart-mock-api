@@ -3,6 +3,7 @@
   "endpoints": [
     {
       "path": "/users",
+      "method": "GET",
       "response": {
         "kind": "collection",
         "count": 10,
@@ -13,10 +14,15 @@
           "role": "person.jobTitle",
           "createdAt": "date.recent"
         }
+      },
+      "store": {
+        "entity": "users",
+        "idField": "id"
       }
     },
     {
       "path": "/users/:id",
+      "method": "GET",
       "response": {
         "kind": "object",
         "fields": {
@@ -27,10 +33,77 @@
           "avatar": "image.avatar",
           "bio": "lorem.paragraph"
         }
+      },
+      "store": {
+        "entity": "users",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/users",
+      "method": "POST",
+      "request": {
+        "fullName": "person.fullName",
+        "email": "internet.email",
+        "role": "person.jobTitle"
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "fullName": "person.fullName",
+          "email": "internet.email",
+          "role": "person.jobTitle",
+          "createdAt": "date.recent"
+        }
+      },
+      "store": {
+        "entity": "users",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/users/:id",
+      "method": "PATCH",
+      "request": {
+        "fullName": "person.fullName",
+        "email": "internet.email",
+        "role": "person.jobTitle"
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "fullName": "person.fullName",
+          "email": "internet.email",
+          "phone": "phone.number",
+          "avatar": "image.avatar",
+          "bio": "lorem.paragraph"
+        }
+      },
+      "store": {
+        "entity": "users",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/users/:id",
+      "method": "DELETE",
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "deleted": "datatype.boolean"
+        }
+      },
+      "store": {
+        "entity": "users",
+        "idField": "id"
       }
     },
     {
       "path": "/products",
+      "method": "GET",
       "response": {
         "kind": "collection",
         "count": 8,
@@ -41,10 +114,15 @@
           "inStock": "datatype.boolean",
           "updatedAt": "date.recent"
         }
+      },
+      "store": {
+        "entity": "products",
+        "idField": "id"
       }
     },
     {
       "path": "/products/:id",
+      "method": "GET",
       "response": {
         "kind": "object",
         "fields": {
@@ -55,6 +133,72 @@
           "description": "lorem.paragraph",
           "updatedAt": "date.recent"
         }
+      },
+      "store": {
+        "entity": "products",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/products",
+      "method": "POST",
+      "request": {
+        "title": "commerce.productName",
+        "price": "commerce.price",
+        "inStock": "datatype.boolean"
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "title": "commerce.productName",
+          "price": "commerce.price",
+          "inStock": "datatype.boolean",
+          "updatedAt": "date.recent"
+        }
+      },
+      "store": {
+        "entity": "products",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/products/:id",
+      "method": "PATCH",
+      "request": {
+        "title": "commerce.productName",
+        "price": "commerce.price",
+        "inStock": "datatype.boolean"
+      },
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "title": "commerce.productName",
+          "price": "commerce.price",
+          "inStock": "datatype.boolean",
+          "description": "lorem.paragraph",
+          "updatedAt": "date.recent"
+        }
+      },
+      "store": {
+        "entity": "products",
+        "idField": "id"
+      }
+    },
+    {
+      "path": "/products/:id",
+      "method": "DELETE",
+      "response": {
+        "kind": "object",
+        "fields": {
+          "id": "uuid",
+          "deleted": "datatype.boolean"
+        }
+      },
+      "store": {
+        "entity": "products",
+        "idField": "id"
       }
     },
     {
@@ -63,7 +207,7 @@
         "kind": "object",
         "fields": {
           "status": "literal.ok",
-          "uptime": "number.int",
+          "uptime": "runtime.uptime",
           "timestamp": "date.iso"
         }
       }

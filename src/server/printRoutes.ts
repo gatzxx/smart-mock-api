@@ -1,4 +1,4 @@
-import type { RegisteredRoute } from "./createServer.js";
+import type { RegisteredRoute } from "./types.js";
 
 const BORDER = "─".repeat(52);
 
@@ -18,11 +18,11 @@ export function printStartupBanner(options: {
   console.log(`  URL:     http://localhost:${port}`);
   console.log(`  Meta:    http://localhost:${port}/__meta`);
   console.log(`  ${BORDER}`);
-  console.log("  Registered GET endpoints:");
+  console.log("  Registered endpoints:");
   console.log("");
 
   for (const route of routes) {
-    console.log(`    ✓  GET ${route.path}`);
+    console.log(`    ✓  ${route.method.padEnd(6)} ${route.path}`);
   }
 
   console.log("");
