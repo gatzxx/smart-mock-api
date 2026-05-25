@@ -23,11 +23,30 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
+function parseBooleanEnv(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined || value.trim() === "") {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === "true" || normalized === "1") {
+    return true;
+  }
+
+  if (normalized === "false" || normalized === "0") {
+    return false;
+  }
+
+  throw new Error(`Invalid boolean env value: "${value}"`);
+}
+
 export type AppConfig = {
   port: number;
   schemaPath: string;
   responseDelayMs: number;
   corsOrigin: string;
+  schemaHotReload: boolean;
 };
 
 export function loadConfig(): AppConfig {
@@ -38,11 +57,16 @@ export function loadConfig(): AppConfig {
   );
 
   const schemaPath = path.resolve(process.env.SCHEMA_PATH ?? DEFAULT_SCHEMA_PATH);
+  const schemaHotReload = parseBooleanEnv(
+    process.env.SCHEMA_HOT_RELOAD,
+    process.env.NODE_ENV !== "production",
+  );
 
   return {
     port,
     schemaPath,
     responseDelayMs,
     corsOrigin: process.env.CORS_ORIGIN ?? DEFAULT_CORS_ORIGIN,
+    schemaHotReload,
   };
 }

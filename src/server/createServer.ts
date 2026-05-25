@@ -3,6 +3,11 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
 import { createDelayMiddleware } from "../middleware/delay.js";
+import {
+  buildOpenApiSpec,
+  computeSchemaVersion,
+  OPENAPI_PATH,
+} from "../openapi/buildOpenApiSpec.js";
 import type { MockSchema } from "../schema/types.js";
 import { EntityStore } from "../store/entityStore.js";
 import { indexCollectionEndpoints, registerEndpoint } from "./registerEndpoint.js";
@@ -44,6 +49,13 @@ export function createMockServer(
   app.use("*", logger());
   app.use("*", createDelayMiddleware(responseDelayMs));
 
+  const schemaVersion = computeSchemaVersion(schema);
+  const openApiSpec = buildOpenApiSpec(schema);
+
+  app.get(OPENAPI_PATH, (context) => {
+    return context.json(openApiSpec);
+  });
+
   app.get("/__meta", (context) => {
     return context.json({
       basePath: schema.basePath,
@@ -52,6 +64,8 @@ export function createMockServer(
         method: route.method,
         path: route.path,
       })),
+      openapiPath: OPENAPI_PATH,
+      schemaVersion,
       responseDelayMs,
     });
   });

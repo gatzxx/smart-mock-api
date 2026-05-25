@@ -17,6 +17,7 @@ export function printStartupBanner(options: {
   console.log(`  Delay:   ${responseDelayMs} ms`);
   console.log(`  URL:     http://localhost:${port}`);
   console.log(`  Meta:    http://localhost:${port}/__meta`);
+  console.log(`  OpenAPI: http://localhost:${port}/openapi.json`);
   console.log(`  ${BORDER}`);
   console.log("  Registered endpoints:");
   console.log("");

@@ -7,5 +7,7 @@ services:
       PORT: 3000
       SCHEMA_PATH: /app/schema.json
       RESPONSE_DELAY_MS: ${RESPONSE_DELAY_MS:-0}
+      # Hot-reload is dev-only; set SCHEMA_HOT_RELOAD=true locally to watch schema.json
+      SCHEMA_HOT_RELOAD: ${SCHEMA_HOT_RELOAD:-false}
     volumes:
       - ./schema.json:/app/schema.json:ro

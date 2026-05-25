@@ -53,11 +53,12 @@ curl http://localhost:3000/unknown
 | `PORT` | `3000` | Порт HTTP-сервера |
 | `SCHEMA_PATH` | `./schema.json` | Путь к схеме |
 | `RESPONSE_DELAY_MS` | `0` | Задержка ответа (мс), для loading на UI |
+| `SCHEMA_HOT_RELOAD` | `true` в dev, `false` в production | Перезагрузка schema.json без restart (store сбрасывается) |
 | `CORS_ORIGIN` | см. `.env.example` | Origins через запятую |
 
 ## Добавить эндпoинт
 
-Только `schema.json`, перезапуск сервера:
+Только `schema.json`. В dev (`npm run dev`) с `SCHEMA_HOT_RELOAD=true` сервер подхватит изменения без restart. In-memory store сбрасывается при reload.
 
 ```json
 {

@@ -1,28 +1,30 @@
 import { serve } from "@hono/node-server";
 
 import { loadConfig } from "./config.js";
-import { loadSchema } from "./schema/loader.js";
-import { createMockServer } from "./server/createServer.js";
+import { startSchemaWatcher } from "./runtime/reloadSchema.js";
+import { createSchemaRuntime } from "./runtime/schemaRuntime.js";
 import { printStartupBanner } from "./server/printRoutes.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const schema = await loadSchema(config.schemaPath);
-  const { app, routes } = createMockServer(
-    schema,
-    config.responseDelayMs,
-    config.corsOrigin,
-  );
+  const runtime = await createSchemaRuntime(config);
+  const initialState = runtime.getState();
 
   printStartupBanner({
     port: config.port,
     schemaPath: config.schemaPath,
     responseDelayMs: config.responseDelayMs,
-    routes,
+    routes: initialState.routes,
   });
 
+  if (config.schemaHotReload) {
+    startSchemaWatcher(config.schemaPath, runtime);
+    console.log("  Hot-reload: enabled (edit schema.json without restart)");
+    console.log("");
+  }
+
   serve({
-    fetch: app.fetch,
+    fetch: runtime.fetch,
     port: config.port,
   });
 }
