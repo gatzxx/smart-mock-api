@@ -2,6 +2,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { API_ERROR_MESSAGE } from "../src/server/errors.js";
 import { loadSchema } from "../src/schema/loader.js";
 import { createMockServer } from "../src/server/createServer.js";
 
@@ -93,6 +94,13 @@ describe("products CRUD", () => {
 
     expect(patchResponse.status).toBe(404);
     expect(deleteResponse.status).toBe(404);
+
+    expect((await patchResponse.json()) as { error: string }).toEqual({
+      error: API_ERROR_MESSAGE.RESOURCE_NOT_FOUND,
+    });
+    expect((await deleteResponse.json()) as { error: string }).toEqual({
+      error: API_ERROR_MESSAGE.RESOURCE_NOT_FOUND,
+    });
   });
 
   it("registers products mutation routes", async () => {
@@ -147,5 +155,69 @@ describe("products CRUD", () => {
     const users = (await usersResponse.json()) as Array<{ id: string }>;
 
     expect(users.some((user) => user.id === createdUser.id)).toBe(true);
+  });
+
+  it("enriches stored product detail with description field", async () => {
+    const schema = await loadSchema(path.join(process.cwd(), "schema.json"));
+    const { app } = createMockServer(schema, 0, "*");
+
+    const createResponse = await app.request("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Detail Enrichment Product",
+        price: 15,
+        inStock: true,
+      }),
+    });
+
+    const createdProduct = (await createResponse.json()) as {
+      id: string;
+      title: string;
+    };
+
+    const detailResponse = await app.request(`/api/products/${createdProduct.id}`);
+    const detailProduct = (await detailResponse.json()) as {
+      title: string;
+      description: string;
+    };
+
+    expect(detailResponse.status).toBe(200);
+    expect(detailProduct.title).toBe("Detail Enrichment Product");
+    expect(detailProduct.description.length).toBeGreaterThan(0);
+  });
+
+  it("enriches PATCH response with product description field", async () => {
+    const schema = await loadSchema(path.join(process.cwd(), "schema.json"));
+    const { app } = createMockServer(schema, 0, "*");
+
+    const createResponse = await app.request("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Patch Enrichment Product",
+        price: 20,
+        inStock: false,
+      }),
+    });
+
+    const createdProduct = (await createResponse.json()) as { id: string };
+
+    const patchResponse = await app.request(`/api/products/${createdProduct.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Patch Enrichment Updated", inStock: true }),
+    });
+
+    const patchedProduct = (await patchResponse.json()) as {
+      title: string;
+      inStock: boolean;
+      description: string;
+    };
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchedProduct.title).toBe("Patch Enrichment Updated");
+    expect(patchedProduct.inStock).toBe(true);
+    expect(patchedProduct.description.length).toBeGreaterThan(0);
   });
 });

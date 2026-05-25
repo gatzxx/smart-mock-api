@@ -2,6 +2,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { API_ERROR_MESSAGE } from "../src/server/errors.js";
 import { loadSchema } from "../src/schema/loader.js";
 import { createMockServer } from "../src/server/createServer.js";
 
@@ -86,6 +87,13 @@ describe("users CRUD", () => {
 
     expect(patchResponse.status).toBe(404);
     expect(deleteResponse.status).toBe(404);
+
+    expect((await patchResponse.json()) as { error: string }).toEqual({
+      error: API_ERROR_MESSAGE.RESOURCE_NOT_FOUND,
+    });
+    expect((await deleteResponse.json()) as { error: string }).toEqual({
+      error: API_ERROR_MESSAGE.RESOURCE_NOT_FOUND,
+    });
   });
 
   it("registers users mutation routes", async () => {
@@ -101,5 +109,78 @@ describe("users CRUD", () => {
       method: "DELETE",
       path: "/api/users/:id",
     });
+  });
+
+  it("enriches stored user detail with avatar and bio fields", async () => {
+    const schema = await loadSchema(path.join(process.cwd(), "schema.json"));
+    const { app } = createMockServer(schema, 0, "*");
+
+    const createResponse = await app.request("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName: "Detail Enrichment User",
+        email: "detail-enrichment@example.com",
+        role: "Engineer",
+      }),
+    });
+
+    expect(createResponse.status).toBe(201);
+
+    const createdUser = (await createResponse.json()) as {
+      id: string;
+      fullName: string;
+    };
+
+    const detailResponse = await app.request(`/api/users/${createdUser.id}`);
+    const detailUser = (await detailResponse.json()) as {
+      id: string;
+      fullName: string;
+      avatar: string;
+      bio: string;
+      phone: string;
+    };
+
+    expect(detailResponse.status).toBe(200);
+    expect(detailUser.fullName).toBe("Detail Enrichment User");
+    expect(detailUser.avatar).toMatch(/^https?:\/\//);
+    expect(detailUser.bio.length).toBeGreaterThan(0);
+    expect(detailUser.phone.length).toBeGreaterThan(0);
+  });
+
+  it("enriches PATCH response with detail profile fields", async () => {
+    const schema = await loadSchema(path.join(process.cwd(), "schema.json"));
+    const { app } = createMockServer(schema, 0, "*");
+
+    const createResponse = await app.request("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName: "Patch Enrichment User",
+        email: "patch-enrichment@example.com",
+        role: "Engineer",
+      }),
+    });
+
+    const createdUser = (await createResponse.json()) as { id: string };
+
+    const patchResponse = await app.request(`/api/users/${createdUser.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullName: "Patch Enrichment Updated" }),
+    });
+
+    const patchedUser = (await patchResponse.json()) as {
+      fullName: string;
+      avatar: string;
+      bio: string;
+      phone: string;
+    };
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchedUser.fullName).toBe("Patch Enrichment Updated");
+    expect(patchedUser.avatar).toMatch(/^https?:\/\//);
+    expect(patchedUser.bio.length).toBeGreaterThan(0);
+    expect(patchedUser.phone.length).toBeGreaterThan(0);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { generateResponse } from "../src/generator/dataGenerator.js";
+import { runWithSeedKey } from "../src/generator/seedContext.js";
 import type { MockResponse } from "../src/schema/types.js";
 
 describe("generateResponse", () => {
@@ -55,5 +56,32 @@ describe("generateResponse", () => {
     >;
 
     expect(firstResult).toEqual(secondResult);
+  });
+
+  it("keeps deterministic output for concurrent seed keys", async () => {
+    const response: MockResponse = {
+      kind: "object",
+      fields: {
+        fullName: "person.fullName",
+        email: "internet.email",
+      },
+    };
+
+    const seedKeys = ["/api/users/a", "/api/users/b", "/api/users/a"];
+
+    const results = await Promise.all(
+      seedKeys.map((seedKey) =>
+        Promise.resolve().then(
+          () =>
+            runWithSeedKey(seedKey, () => generateResponse(response)) as Record<
+              string,
+              unknown
+            >,
+        ),
+      ),
+    );
+
+    expect(results[0]).toEqual(results[2]);
+    expect(results[0]).not.toEqual(results[1]);
   });
 });

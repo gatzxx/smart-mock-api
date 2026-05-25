@@ -55,4 +55,53 @@ describe("OpenAPI export", () => {
     expect(payload.openapiPath).toBe(OPENAPI_PATH);
     expect(payload.schemaVersion).toBe(computeSchemaVersion(schema));
   });
+
+  it("defines mutation requestBody schemas for users and products", async () => {
+    const schema = await loadSchema(path.join(process.cwd(), "schema.json"));
+    const spec = buildOpenApiSpec(schema);
+
+    const userPostRequest = spec.paths["/api/users"]?.post?.requestBody;
+    const userPatchRequest = spec.paths["/api/users/{id}"]?.patch?.requestBody;
+    const productPostRequest = spec.paths["/api/products"]?.post?.requestBody;
+    const productPatchRequest = spec.paths["/api/products/{id}"]?.patch?.requestBody;
+
+    expect(userPostRequest?.required).toBe(true);
+    expect(userPostRequest?.content["application/json"].schema).toEqual({
+      $ref: "#/components/schemas/UserCreateRequest",
+    });
+    expect(userPatchRequest?.required).toBe(false);
+    expect(userPatchRequest?.content["application/json"].schema).toEqual({
+      $ref: "#/components/schemas/UserUpdateRequest",
+    });
+
+    expect(productPostRequest?.required).toBe(true);
+    expect(productPostRequest?.content["application/json"].schema).toEqual({
+      $ref: "#/components/schemas/ProductCreateRequest",
+    });
+    expect(productPatchRequest?.required).toBe(false);
+    expect(productPatchRequest?.content["application/json"].schema).toEqual({
+      $ref: "#/components/schemas/ProductUpdateRequest",
+    });
+
+    expect(spec.components.schemas.UserCreateRequest).toMatchObject({
+      type: "object",
+      required: ["fullName", "email", "role"],
+      properties: {
+        fullName: expect.objectContaining({ type: "string" }),
+        email: expect.objectContaining({ type: "string" }),
+        role: expect.objectContaining({ type: "string" }),
+      },
+    });
+    expect(spec.components.schemas.UserUpdateRequest?.required).toBeUndefined();
+    expect(spec.components.schemas.ProductCreateRequest).toMatchObject({
+      type: "object",
+      required: ["title", "price", "inStock"],
+      properties: {
+        title: expect.objectContaining({ type: "string" }),
+        price: expect.objectContaining({ type: "number" }),
+        inStock: expect.objectContaining({ type: "boolean" }),
+      },
+    });
+    expect(spec.components.schemas.ProductUpdateRequest?.required).toBeUndefined();
+  });
 });

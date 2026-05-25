@@ -113,4 +113,57 @@ describe("schema hot-reload", () => {
       false,
     );
   });
+
+  it("removes routes when schema shrinks on reload", async () => {
+    const tempDir = await mkdtemp(path.join(tmpdir(), "smart-mock-reload-shrink-"));
+    const schemaPath = path.join(tempDir, "schema.json");
+    const baseSchema = await loadSchema(path.join(process.cwd(), "schema.json"));
+
+    const healthEndpoint = baseSchema.endpoints.find(
+      (endpoint) => endpoint.path === "/health",
+    );
+
+    if (!healthEndpoint) {
+      throw new Error("Expected /health endpoint in schema.json");
+    }
+
+    await writeFile(schemaPath, JSON.stringify(baseSchema, null, 2), "utf-8");
+
+    const runtime = await createSchemaRuntime({
+      port: 3000,
+      schemaPath,
+      responseDelayMs: 0,
+      corsOrigin: "*",
+      schemaHotReload: false,
+    });
+
+    const initialRoutePaths = runtime.getState().routes.map((route) => route.path);
+
+    expect(initialRoutePaths).toContain("/api/users");
+    expect(initialRoutePaths).toContain("/api/products");
+
+    const minimalSchema = {
+      basePath: baseSchema.basePath,
+      endpoints: [healthEndpoint],
+    };
+
+    await writeFile(schemaPath, JSON.stringify(minimalSchema, null, 2), "utf-8");
+
+    const nextState = await runtime.reload();
+    const nextRoutePaths = nextState.routes.map((route) => route.path);
+
+    expect(nextRoutePaths).toContain("/api/health");
+    expect(nextRoutePaths).not.toContain("/api/users");
+    expect(nextRoutePaths).not.toContain("/api/products");
+
+    const usersResponse = await runtime.fetch(
+      new Request("http://localhost/api/users"),
+    );
+    const productsResponse = await runtime.fetch(
+      new Request("http://localhost/api/products"),
+    );
+
+    expect(usersResponse.status).toBe(404);
+    expect(productsResponse.status).toBe(404);
+  });
 });

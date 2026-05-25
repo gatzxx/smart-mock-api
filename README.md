@@ -15,9 +15,11 @@ Schema-driven mock-сервер для фронтенда: эндпoинты в 
 | **API** | https://smart-mock-api.onrender.com/api/users |
 | **Meta** | https://smart-mock-api.onrender.com/__meta |
 
-Демо-фронт: [smart-mock-ui](https://github.com/gatzxx/smart-mock-ui) (dashboard, users/products detail, TanStack Table) · GitHub: [smart-mock-api](https://github.com/gatzxx/smart-mock-api)
+Демо-фронт: [smart-mock-ui](https://github.com/gatzxx/smart-mock-ui) · GitHub: [smart-mock-api](https://github.com/gatzxx/smart-mock-api)
 
 ![Demo UI](docs/demo.png)
+
+> Скриншот в README статичный. Live demo всегда актуальна по ссылке UI.
 
 ## Зачем
 
