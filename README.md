@@ -14,6 +14,7 @@ Schema-driven mock-сервер для фронтенда: эндпoинты в 
 | **UI** | https://smart-mock-ui.vercel.app |
 | **API** | https://smart-mock-api.onrender.com/api/users |
 | **Meta** | https://smart-mock-api.onrender.com/__meta |
+| **OpenAPI** | https://smart-mock-api.onrender.com/openapi.json |
 
 Демо-фронт: [smart-mock-ui](https://github.com/gatzxx/smart-mock-ui) · GitHub: [smart-mock-api](https://github.com/gatzxx/smart-mock-api)
 
@@ -24,6 +25,18 @@ Schema-driven mock-сервер для фронтенда: эндпoинты в 
 ## Зачем
 
 Фронтенд блокируется отсутствием бэкенда, нельзя проверить loading, error и retry. Новый эндпoинт добавляется **только в JSON**, без правки TypeScript. Задержка ответа через `.env` для отработки UX на UI.
+
+## Ограничения runtime
+
+| Ограничение | Поведение |
+|-------------|-----------|
+| **In-memory store** | CRUD-данные (`users`, `products`) хранятся в RAM. Нет PostgreSQL, Redis, файловой персистентности |
+| **Cold start (Render)** | После простоя free-tier инстанс перезапускается. Store и CRUD-записи сбрасываются |
+| **Hot reload** | `SCHEMA_HOT_RELOAD=true` только в dev. В production default `false` (см. `loadConfig`) |
+| **CRUD scope** | POST/PATCH/DELETE только для store-backed сущностей в `schema.json` (сейчас: users, products) |
+| **Auth** | Нет. Mock для локальной разработки и demo |
+
+При hot reload или restart in-memory store **полностью сбрасывается**.
 
 ## Быстрый старт
 
@@ -39,24 +52,54 @@ http://localhost:3000
 docker compose up --build
 ```
 
+## CRUD API
+
+Store-backed entities поддерживают полный цикл:
+
+| Метод | Users | Products |
+|-------|-------|----------|
+| `GET` list | `/api/users` | `/api/products` |
+| `GET` detail | `/api/users/:id` | `/api/products/:id` |
+| `POST` create | `/api/users` → 201 | `/api/products` → 201 |
+| `PATCH` update | `/api/users/:id` → 200 | `/api/products/:id` → 200 |
+| `DELETE` | `/api/users/:id` → 200 | `/api/products/:id` → 200 |
+
+Ошибки мутаций: `{ "error": "string" }` (400/404/500). GET detail enrich: avatar/bio для users, description для products.
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Demo","email":"demo@example.com","role":"Engineer"}'
+```
+
+## OpenAPI и Meta
+
+| Endpoint | Описание |
+|----------|----------|
+| `GET /__meta` | Discovery: routes, methods, `schemaVersion`, `openapiPath` |
+| `GET /openapi.json` | OpenAPI 3.1 spec, сгенерирован из `schema.json` |
+
 ## Примеры
 
 ```bash
 curl http://localhost:3000/api/users
 curl http://localhost:3000/api/users/42
 curl http://localhost:3000/__meta
+curl http://localhost:3000/openapi.json
 curl http://localhost:3000/unknown
 ```
 
 ## Конфигурация
 
+Переменные из `.env.example`:
+
 | Переменная | По умолчанию | Описание |
 |------------|--------------|----------|
 | `PORT` | `3000` | Порт HTTP-сервера |
 | `SCHEMA_PATH` | `./schema.json` | Путь к схеме |
-| `RESPONSE_DELAY_MS` | `0` | Задержка ответа (мс), для loading на UI |
+| `RESPONSE_DELAY_MS` | `0` | Задержка ответа (мс, max 30000), для loading на UI |
 | `SCHEMA_HOT_RELOAD` | `true` в dev, `false` в production | Перезагрузка schema.json без restart (store сбрасывается) |
-| `CORS_ORIGIN` | см. `.env.example` | Origins через запятую |
+| `CORS_ORIGIN` | `http://localhost:5173` | Origins через запятую |
 
 ## Добавить эндпoинт
 
@@ -78,7 +121,7 @@ curl http://localhost:3000/unknown
 }
 ```
 
-`GET /api/orders` появится автоматически.
+`GET /api/orders` появится автоматически. CRUD (POST/PATCH/DELETE) требует блок `store` в endpoint.
 
 **Ответы:** `collection` · `object` · Faker: `person.fullName`, shorthand `uuid`, `literal.ok`
 
@@ -87,10 +130,14 @@ curl http://localhost:3000/unknown
 | Команда | Действие |
 |---------|----------|
 | `npm run dev` | Dev-сервер |
-| `npm run check` | typecheck + lint + test |
+| `npm run check` | typecheck + lint + format + test |
 | `npm test` | Unit-тесты |
 | `npm run build` | Сборка |
 | `npm start` | Production |
+
+## Связанные репозитории
+
+- [smart-mock-ui](https://github.com/gatzxx/smart-mock-ui) - React admin demo (CRUD, TanStack Query, Meta UI)
 
 ## Стек
 
