@@ -1,10 +1,8 @@
 import type { FieldMap, MockResponse } from "../schema/types.js";
 import { getGenerator } from "./fakerRegistry.js";
-import { applyActiveSeed, runWithSeedKey } from "./seedContext.js";
+import { runWithSeedKey } from "./seedContext.js";
 
 export function generateFields(fields: FieldMap): Record<string, unknown> {
-  applyActiveSeed();
-
   const result: Record<string, unknown> = {};
 
   for (const [fieldName, fieldType] of Object.entries(fields)) {

@@ -6,7 +6,7 @@
       "method": "GET",
       "response": {
         "kind": "collection",
-        "count": 10,
+        "count": 3,
         "item": {
           "id": "uuid",
           "fullName": "person.fullName",
@@ -106,7 +106,7 @@
       "method": "GET",
       "response": {
         "kind": "collection",
-        "count": 8,
+        "count": 5,
         "item": {
           "id": "uuid",
           "title": "commerce.productName",

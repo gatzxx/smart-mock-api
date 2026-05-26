@@ -38,6 +38,25 @@ describe("generateResponse", () => {
     expect(result[0]).toHaveProperty("fullName");
   });
 
+  it("generates unique ids for each collection item when seeded", () => {
+    const response: MockResponse = {
+      kind: "collection",
+      count: 3,
+      item: {
+        id: "uuid",
+        fullName: "person.fullName",
+        email: "internet.email",
+      },
+    };
+
+    const result = generateResponse(response, "/api/users") as Array<{
+      id: string;
+    }>;
+
+    expect(result).toHaveLength(3);
+    expect(new Set(result.map((item) => item.id)).size).toBe(3);
+  });
+
   it("generates stable collection for the same seed key", () => {
     const response: MockResponse = {
       kind: "collection",
